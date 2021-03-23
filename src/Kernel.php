@@ -20,6 +20,9 @@ class Kernel extends BaseKernel
         $contents = require $this->getProjectDir().'/config/bundles.php';
         foreach ($contents as $class => $envs) {
             if ($envs[$this->environment] ?? $envs['all'] ?? false) {
+                if (!class_exists($class)) {
+                    throw new \RuntimeException("Bundle class required for your environment not found. Missing $class. Check for installed dependencies.");
+                }
                 yield new $class();
             }
         }
