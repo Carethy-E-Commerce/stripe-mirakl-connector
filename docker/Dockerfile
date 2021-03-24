@@ -41,4 +41,7 @@ RUN chown www-data:www-data .
 #Copy public files specific for this image
 COPY ./docker/public/.htaccess /var/www/public/.htaccess
 
+#Test for crontab format to not build an invalid cron
+RUN supercronic -test docker/crontab
+
 ENTRYPOINT docker/docker-entrypoint.sh
