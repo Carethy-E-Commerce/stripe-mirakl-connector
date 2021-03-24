@@ -1,4 +1,26 @@
 # minute (m), hour (h), day of month (dom), month (mon), day of week (dow)
 # m h dom mon dow   command
+
+#Onboarding
+#Fetch newly created Mirakl shops and add the onboarding link to their Mirakl back office.
+*   * * * * php /var/www/bin/console connector:sync:onboarding -q 2>&1
+
+#Payment validation
+#Fetch newly accepted Mirakl orders, validate the payment on Mirakl, and capture it on Stripe.
+*/5 * * * * php /var/www/bin/console connector:validate:pending-debit -q 2>&1
+
+#Payment split
+#Fetch newly debited Mirakl orders and create Stripe Transfers from the operator to the seller.
 */5 * * * * php /var/www/bin/console connector:dispatch:process-transfer -q 2>&1
-*/5 * * * * php /var/www/bin/console connector:sync:onboarding
+
+#Payment refund
+#Fetch pending Mirakl refunds, create the refund on Stripe, validate it on Mirakl, and reverse the initial transfer.
+*/5 * * * * php /var/www/bin/console connector:dispatch:process-refund -q 2>&1
+
+#Payout
+#Fetch newly created Mirakl invoices and create Stripe Transfers and Payouts.
+0   1 * * * php /var/www/bin/console connector:dispatch:process-payout -q 2>&1
+
+#Alerting
+#If enabled, send an email with all the failed transfers, refunds, and payouts.
+0   8 * * * php /var/www/bin/console connector:notify:failed-operation -q 2>&1
