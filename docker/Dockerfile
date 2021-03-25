@@ -26,6 +26,10 @@ RUN curl -fsSLO "$SUPERCRONIC_URL" \
 #Apache configuration
 RUN a2enmod rewrite
 
+#Create var dir and make it writable
+WORKDIR /var/www
+RUN mkdir -p var && chmod -R go+w var
+
 #Install composer dependencies
 COPY composer.json /var/www
 COPY composer.lock /var/www
