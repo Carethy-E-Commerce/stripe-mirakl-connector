@@ -1,4 +1,4 @@
-FROM php:7-apache
+FROM php:7-apache AS web
 
 #Install required php extensions
 RUN apt-get update && apt-get install -y zip libpq-dev
@@ -11,17 +11,6 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
     php -r "unlink('composer-setup.php');" &&\
     chmod +x composer.phar &&\
     mv composer.phar /usr/local/bin/composer
-
-#Install supercronic
-ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.1.12/supercronic-linux-amd64 \
-    SUPERCRONIC=supercronic-linux-amd64 \
-    SUPERCRONIC_SHA1SUM=048b95b48b708983effb2e5c935a1ef8483d9e3e
-
-RUN curl -fsSLO "$SUPERCRONIC_URL" \
- && echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c - \
- && chmod +x "$SUPERCRONIC" \
- && mv "$SUPERCRONIC" "/usr/local/bin/${SUPERCRONIC}" \
- && ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic
 
 #Apache configuration
 RUN a2enmod rewrite
@@ -45,7 +34,30 @@ RUN chown www-data:www-data .
 #Copy public files specific for this image
 COPY ./docker/public/.htaccess /var/www/public/.htaccess
 
-#Test for crontab format to not build an invalid cron
-RUN supercronic -test docker/crontab
 
-ENTRYPOINT docker/docker-entrypoint.sh
+
+FROM web AS cron
+
+#Install supercronic
+ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.1.12/supercronic-linux-amd64 \
+    SUPERCRONIC=supercronic-linux-amd64 \
+    SUPERCRONIC_SHA1SUM=048b95b48b708983effb2e5c935a1ef8483d9e3e
+
+RUN curl -fsSLO "$SUPERCRONIC_URL" \
+ && echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c - \
+ && chmod +x "$SUPERCRONIC" \
+ && mv "$SUPERCRONIC" "/usr/local/bin/${SUPERCRONIC}" \
+ && ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic
+
+#Test for crontab format to not build an invalid cron
+RUN supercronic -test docker/cron/crontab
+
+ENTRYPOINT supercronic docker/cron/crontab
+
+
+
+FROM web AS workers
+RUN apt-get install -y python python3 python-pip python3-pip
+RUN pip install supervisor
+
+ENTRYPOINT supervisord -c docker/workers/supervisord.conf

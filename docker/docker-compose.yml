@@ -11,14 +11,45 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
   app:
+    depends_on:
+      - db
     env_file:
       - ../.env.local
+    image: ${COMPOSE_PROJECT_NAME}_app
     build:
       context: ../
       dockerfile: ./docker/Dockerfile
+      target: web
     ports:
       - "880:80"
       - "8443:443"
+    volumes:
+      - shared-tmp:/tmp
+  cron:
+    depends_on:
+      - db
+    env_file:
+      - ../.env.local
+    image: ${COMPOSE_PROJECT_NAME}_cron
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+      target: cron
+    volumes:
+      - shared-tmp:/tmp
+  workers:
+    depends_on:
+      - db
+    env_file:
+      - ../.env.local
+    image: ${COMPOSE_PROJECT_NAME}_workers
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+      target: workers
+    volumes:
+      - shared-tmp:/tmp
 
 volumes:
   db-data:
+  shared-tmp:
