@@ -57,7 +57,7 @@ ENTRYPOINT supercronic docker/cron/crontab
 
 
 FROM web AS workers
-RUN apt-get install -y python python3 python-pip python3-pip
+RUN apt-get update && apt-get install -y python python3 python-pip python3-pip
 RUN pip install supervisor
 
 ENTRYPOINT supervisord -c docker/workers/supervisord.conf
