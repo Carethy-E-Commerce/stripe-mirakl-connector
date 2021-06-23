@@ -1,8 +1,9 @@
 FROM php:7-apache AS web
 
 #Install required php extensions
-RUN apt-get update && apt-get install -y zip libpq-dev
-RUN docker-php-ext-install pgsql && docker-php-ext-install pdo_pgsql
+RUN apt-get update && apt-get install -y zip libpq-dev libgmp-dev
+RUN docker-php-ext-install pgsql && docker-php-ext-install pdo_pgsql && docker-php-ext-install gmp
+
 
 #Install composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&\
