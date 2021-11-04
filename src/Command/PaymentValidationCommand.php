@@ -108,9 +108,15 @@ class PaymentValidationCommand extends Command implements LoggerAwareInterface
     protected function capturePayments(array $paymentMappings): void
     {
         // List all orders using the provided commercial IDs
-        $ordersByCommercialId = $this->miraklClient->listProductOrdersByCommercialId(
-            array_keys($paymentMappings)
-        );
+        $paymentMappingsTemporal = $paymentMappings;
+        $ordersByCommercialId = [];
+        while ($paymentMappingsBatch = array_splice($paymentMappingsTemporal, 0, 100)) {
+            $ordersByCommercialIdBatch = $this->miraklClient->listProductOrdersByCommercialId(
+                array_keys($paymentMappingsBatch)
+            );
+            $ordersByCommercialId = array_merge($ordersByCommercialId, $ordersByCommercialIdBatch);
+        }
+
 
         // Calculate the right amount to be captured for each commercial order
         foreach ($paymentMappings as $commercialId => $paymentMapping) {
