@@ -53,9 +53,21 @@ class PaymentMappingRepository extends ServiceEntityRepository
      */
     public function findToCapturePayments(): array
     {
-        return $this->mapByMiraklCommercialOrderId($this->findBy([
-            'status' => PaymentMapping::TO_CAPTURE
-        ]));
+        $all = [];
+        $batch_offset = 0;
+        do {
+            $batch = $this->mapByMiraklCommercialOrderId($this->findBy([
+                'status' => PaymentMapping::TO_CAPTURE
+            ], null, 100, $batch_offset));
+
+            $batch_offset += 100;
+
+            if ($batch) {
+                $all = array_merge($all, $batch);
+            }
+        } while ($batch);
+
+        return $all;
     }
 
     /**

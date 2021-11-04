@@ -10,6 +10,7 @@ services:
       POSTGRES_PASSWORD: symfony
     volumes:
       - db-data:/var/lib/postgresql/data
+    restart: always
   app:
     depends_on:
       - db
@@ -25,6 +26,7 @@ services:
       - "8443:443"
     volumes:
       - shared-tmp:/tmp
+    restart: always
   cron:
     depends_on:
       - db
@@ -37,6 +39,7 @@ services:
       target: cron
     volumes:
       - shared-tmp:/tmp
+    restart: always
   workers:
     depends_on:
       - db
@@ -49,6 +52,7 @@ services:
       target: workers
     volumes:
       - shared-tmp:/tmp
+    restart: always
 
 volumes:
   db-data:
