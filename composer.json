@@ -10,6 +10,12 @@
     "homepage": "https://stripe.com/",
     "type": "project",
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/theofidry/AliceBundle"
+        }
+    ],
     "require": {
         "php": "^7.3",
         "antishov/doctrine-extensions-bundle": "^1.4",
